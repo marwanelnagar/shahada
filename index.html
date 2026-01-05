@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محرر مروان هاني للشهادات - الإصدار الذهبي</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;700&family=Reem+Kufi:wght@400;700&family=Tajawal:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Lalezar&family=Changa:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root { --cert-border: #d4af37; --stamp-color: #b08d1a; }
+        body { font-family: 'Cairo', sans-serif; background-color: #0f172a; color: white; height: 100vh; overflow: hidden; }
+        
+        #certificate-area {
+            width: 1000px; height: 700px; background: white; position: relative;
+            box-sizing: border-box; border: 20px solid var(--cert-border);
+            overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); transform-origin: center;
+        }
+
+        .cert-inner-border {
+            border: 4px double var(--cert-border); height: 100%; width: 100%;
+            position: relative; background: #fff;
+            background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+        }
+
+        /* Drag and Drop Styling */
+        .draggable {
+            position: absolute; cursor: move; user-select: none;
+            padding: 5px; border: 1px dashed transparent; transition: border 0.2s;
+            display: inline-block;
+        }
+        .draggable:hover { border: 1px dashed #3b82f6; background: rgba(59, 130, 246, 0.05); }
+        .draggable:active { cursor: grabbing; border: 1px solid #3b82f6; z-index: 1000; }
+
+        /* Stamp Styles */
+        .stamp-container { width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; }
+        .stamp-shape {
+            display: flex; align-items: center; justify-content: center;
+            border: 4px solid var(--stamp-color); color: var(--stamp-color); font-weight: bold;
+            transition: all 0.3s;
+        }
+        .stamp-circle { border-radius: 50%; width: 120px; height: 120px; }
+        .stamp-square { border-radius: 12px; width: 120px; height: 120px; }
+        .stamp-rect { border-radius: 5px; width: 160px; height: 90px; }
+        
+        .circular-text-wrap { position: absolute; width: 180px; height: 180px; pointer-events: none; }
+        .rotating { animation: rotate 15s linear infinite; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .circular-text-wrap span {
+            position: absolute; left: 50%; transform-origin: 0 90px;
+            font-size: 12px; font-weight: bold; color: var(--stamp-color);
+        }
+
+        /* القوالب */
+        .tpl-royal { --cert-border: #d4af37; }
+        .tpl-modern { --cert-border: #1e293b; }
+        .tpl-emerald { --cert-border: #065f46; }
+        .tpl-classic { --cert-border: #94a3b8; }
+        .tpl-pink { --cert-border: #db2777; }
+        .tpl-dark { --cert-border: #000000; }
+
+        .controls-panel::-webkit-scrollbar { width: 6px; }
+        .controls-panel::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body class="flex h-screen">
+
+    <!-- Sidebar Controls -->
+    <div class="w-80 bg-slate-900 p-4 overflow-y-auto controls-panel border-l border-slate-800 shadow-2xl">
+        <h2 class="text-xl font-bold mb-6 text-amber-500 flex items-center gap-2 border-b border-slate-700 pb-3">
+            <span>🎨</span> محرر مروان الفاخر
+        </h2>
+
+        <div class="space-y-6">
+            <!-- التصميم والخطوط -->
+            <section class="space-y-3">
+                <label class="text-xs font-bold text-slate-400 block uppercase tracking-wider">القالب والخطوط</label>
+                <select id="templateSelect" class="w-full bg-slate-800 p-2 rounded text-sm outline-none border border-slate-700 focus:border-amber-500 transition">
+                    <option value="tpl-royal">الملكي (ذهبي)</option>
+                    <option value="tpl-modern">العصري (كحلي)</option>
+                    <option value="tpl-emerald">الزمردي (أخضر)</option>
+                    <option value="tpl-classic">الكلاسيكي (فضي)</option>
+                    <option value="tpl-pink">الناعم (وردي)</option>
+                    <option value="tpl-dark">الفخم (أسود)</option>
+                </select>
+                <select id="fontSelect" class="w-full bg-slate-800 p-2 rounded text-sm outline-none border border-slate-700 focus:border-amber-500">
+                    <option value="'Amiri'">خط الأميري (كلاسيك)</option>
+                    <option value="'Cairo'">خط كايرو (عصري)</option>
+                    <option value="'Tajawal'">خط تجوال (ناعم)</option>
+                    <option value="'Aref Ruqaa'">خط الرقعة</option>
+                    <option value="'Reem Kufi'">الخط الكوفي</option>
+                    <option value="'Lalezar'">خط لاليزار (عريض)</option>
+                    <option value="'Changa'">خط تشانجا</option>
+                </select>
+            </section>
+
+            <!-- النصوص الأساسية -->
+            <section class="space-y-3">
+                <label class="text-xs font-bold text-slate-400 block uppercase tracking-wider">المحتوى النصي</label>
+                <input type="text" id="inTitle" class="w-full bg-slate-800 p-2 rounded text-xs border border-slate-700" value="شهادة شكر وتقدير">
+                <input type="text" id="inName" class="w-full bg-slate-800 p-2 rounded text-sm font-bold border border-slate-700 text-amber-400" value="مروان هاني النجار">
+                <textarea id="inContent" rows="3" class="w-full bg-slate-800 p-2 rounded text-xs border border-slate-700">نتقدم بجزيل الشكر والتقدير للأستاذ مروان هاني النجار لجهوده الاستثنائية وتفانيه في العمل البرمجي وتطوير الحلول المبتكرة.</textarea>
+            </section>
+
+            <!-- التوقيع والتاريخ -->
+            <section class="space-y-3">
+                <label class="text-xs font-bold text-slate-400 block uppercase tracking-wider">التوقيع والتاريخ</label>
+                <input type="text" id="inSigner" class="w-full bg-slate-800 p-2 rounded text-xs border border-slate-700" value="المبرمج مروان هاني">
+                <input type="text" id="inDateGreg" class="w-full bg-slate-800 p-2 rounded text-xs border border-slate-700" placeholder="التاريخ الميلادي">
+                <input type="text" id="inDateHijri" class="w-full bg-slate-800 p-2 rounded text-xs border border-slate-700" placeholder="التاريخ الهجري">
+                <p class="text-[9px] text-slate-500 italic">يمكنك مسح التواريخ وكتابتها يدوياً كما تشاء.</p>
+            </section>
+
+            <!-- الختم المطور -->
+            <section class="space-y-3 bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                <label class="text-xs font-bold text-amber-500 block uppercase tracking-wider">إعدادات الختم الاحترافية</label>
+                <div class="flex gap-2">
+                    <select id="inStampShape" class="flex-1 bg-slate-700 p-2 rounded text-xs">
+                        <option value="stamp-circle">ختم دائري</option>
+                        <option value="stamp-square">ختم مربع</option>
+                        <option value="stamp-rect">ختم مستطيل</option>
+                    </select>
+                    <input type="color" id="inStampColor" value="#b08d1a" class="w-10 h-8 bg-transparent cursor-pointer">
+                </div>
+                <input type="text" id="inStampInner" class="w-full bg-slate-700 p-2 rounded text-[10px]" value="معتمد">
+                <input type="text" id="inStampOuter" class="w-full bg-slate-700 p-2 rounded text-[10px]" value="• توثيق رسمي معتمد • مروان هاني النجار • المبرمج المحترف • ">
+                <div class="flex items-center justify-between gap-2">
+                    <label class="text-[10px]">دوران</label>
+                    <input type="range" id="inStampRot" min="-180" max="180" value="-15" class="w-2/3 h-1">
+                </div>
+            </section>
+
+            <!-- العمليات -->
+            <div class="pt-4 space-y-3">
+                <button onclick="previewImage()" class="w-full bg-amber-600 hover:bg-amber-700 p-4 rounded-2xl font-bold transition-all shadow-lg hover:scale-[1.02]">👁️ معاينة التصميم</button>
+                <button onclick="downloadPNG()" class="w-full bg-emerald-600 hover:bg-emerald-700 p-4 rounded-2xl font-bold transition-all shadow-lg hover:scale-[1.02]">💾 حفظ كـ صورة PNG</button>
+            </div>
+            <div class="text-center pb-6">
+                <p class="text-[10px] text-slate-500">محرر مروان هاني | جميع الحقوق محفوظة</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Canvas Area -->
+    <div class="flex-1 flex flex-col items-center justify-center p-4 overflow-hidden bg-slate-950 relative">
+        <div class="absolute top-6 text-slate-500 text-sm animate-pulse">💡 استخدم الماوس لتحريك أي عنصر لمكانه المناسب</div>
+        
+        <div id="certificate-area" class="tpl-royal">
+            <div class="cert-inner-border" id="dropzone">
+                
+                <!-- Draggable Title -->
+                <div id="dragTitle" class="draggable" style="top: 80px; left: 250px; width: 500px; text-align: center;">
+                    <h1 class="text-6xl font-bold" id="outTitle" style="color: var(--cert-border)">شهادة شكر وتقدير</h1>
+                </div>
+
+                <!-- Draggable Subtitle -->
+                <div id="dragSub" class="draggable" style="top: 190px; left: 300px; width: 400px; text-align: center;">
+                    <p class="text-xl text-slate-400 font-bold">تمنح هذه الشهادة بكل فخر واعتزاز إلى</p>
+                </div>
+
+                <!-- Draggable Name -->
+                <div id="dragName" class="draggable" style="top: 250px; left: 100px; width: 800px; text-align: center;">
+                    <h2 id="outName" class="text-7xl font-bold text-slate-800 drop-shadow-sm">مروان هاني النجار</h2>
+                </div>
+
+                <!-- Draggable Content -->
+                <div id="dragContent" class="draggable" style="top: 380px; left: 150px; width: 700px; text-align: center;">
+                    <p id="outContent" class="text-2xl text-slate-700 leading-relaxed italic font-medium">نتقدم بجزيل الشكر والتقدير للأستاذ مروان هاني النجار لجهوده الاستثنائية وتفانيه في العمل البرمجي وتطوير الحلول المبتكرة.</p>
+                </div>
+
+                <!-- Draggable Dates -->
+                <div id="dragDates" class="draggable text-right" style="top: 550px; left: 720px; min-width: 200px;">
+                    <p class="text-xs text-slate-400 font-bold mb-1 border-b border-slate-200">تحريراً في:</p>
+                    <p id="outDateGreg" class="text-lg text-slate-800 font-bold"></p>
+                    <p id="outDateHijri" class="text-lg text-slate-800 font-bold"></p>
+                </div>
+
+                <!-- Draggable Sign -->
+                <div id="dragSign" class="draggable text-center" style="top: 550px; left: 80px; min-width: 250px;">
+                    <p class="text-xs text-slate-400 font-bold mb-1 border-b border-slate-200">اعتماد وتوقيع:</p>
+                    <p id="outSigner" class="text-3xl text-slate-900" style="font-family: 'Reem Kufi'">مروان هاني النجار</p>
+                </div>
+
+                <!-- Draggable Stamp -->
+                <div id="dragStamp" class="draggable stamp-container" style="top: 480px; left: 410px;">
+                    <div class="circular-text-wrap rotating" id="outStampOuter"></div>
+                    <div id="outStampShape" class="stamp-shape stamp-circle" style="transform: rotate(-15deg);">
+                        <span id="outStampInner" class="text-sm font-black">معتمد</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal المعاينة -->
+    <div id="previewModal" class="fixed inset-0 bg-slate-950/95 z-50 hidden flex-col items-center justify-center p-4">
+        <button onclick="closePreview()" class="absolute top-8 left-8 text-white text-4xl hover:text-amber-500 transition">✕</button>
+        <div id="finalPreview" class="max-w-full max-h-[85vh] bg-white shadow-2xl overflow-hidden rounded-lg"></div>
+        <div class="mt-8 flex gap-4">
+             <button onclick="downloadPNG()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-12 py-4 rounded-full font-bold text-xl shadow-2xl transition hover:scale-105">تأكيد وتحميل الشهادة النهائية</button>
+             <button onclick="closePreview()" class="bg-slate-700 text-white px-8 py-4 rounded-full font-bold text-xl shadow-2xl transition hover:bg-slate-600">عودة للتعديل</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Drag and Drop Logic ---
+        let activeElement = null;
+        let offset = { x: 0, y: 0 };
+
+        document.querySelectorAll('.draggable').forEach(el => {
+            el.addEventListener('mousedown', (e) => {
+                activeElement = el;
+                const rect = el.getBoundingClientRect();
+                offset.x = e.clientX - rect.left;
+                offset.y = e.clientY - rect.top;
+                el.style.zIndex = 1000;
+            });
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!activeElement) return;
+            const parent = document.getElementById('dropzone').getBoundingClientRect();
+            let x = e.clientX - parent.left - offset.x;
+            let y = e.clientY - parent.top - offset.y;
+            
+            // Limit movement to canvas
+            x = Math.max(0, Math.min(x, 1000 - activeElement.offsetWidth));
+            y = Math.max(0, Math.min(y, 700 - activeElement.offsetHeight));
+
+            activeElement.style.left = x + 'px';
+            activeElement.style.top = y + 'px';
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (activeElement) {
+                activeElement.style.zIndex = 'auto';
+                activeElement = null;
+            }
+        });
+
+        // --- UI Sync Logic ---
+        function sync() {
+            // Texts
+            document.getElementById('outTitle').innerText = document.getElementById('inTitle').value;
+            document.getElementById('outName').innerText = document.getElementById('inName').value;
+            document.getElementById('outContent').innerText = document.getElementById('inContent').value;
+            document.getElementById('outSigner').innerText = document.getElementById('inSigner').value;
+            document.getElementById('outStampInner').innerText = document.getElementById('inStampInner').value;
+            
+            // Custom Dates
+            document.getElementById('outDateGreg').innerText = document.getElementById('inDateGreg').value;
+            document.getElementById('outDateHijri').innerText = document.getElementById('inDateHijri').value;
+
+            // Styles
+            const cert = document.getElementById('certificate-area');
+            cert.style.fontFamily = document.getElementById('fontSelect').value;
+            cert.className = document.getElementById('templateSelect').value;
+            
+            // Stamp
+            const color = document.getElementById('inStampColor').value;
+            const rot = document.getElementById('inStampRot').value;
+            document.documentElement.style.setProperty('--stamp-color', color);
+            document.getElementById('outStampShape').className = 'stamp-shape ' + document.getElementById('inStampShape').value;
+            document.getElementById('outStampShape').style.transform = `rotate(${rot}deg)`;
+
+            updateCircularText();
+        }
+
+        function updateCircularText() {
+            const text = document.getElementById('inStampOuter').value;
+            const container = document.getElementById('outStampOuter');
+            container.innerHTML = '';
+            const characters = text.split('');
+            const degree = 360 / characters.length;
+            characters.forEach((char, i) => {
+                const span = document.createElement('span');
+                span.innerText = char;
+                span.style.transform = `rotate(${i * degree}deg)`;
+                container.appendChild(span);
+            });
+        }
+
+        // Initialize Dates
+        function initDates() {
+            const now = new Date();
+            const greg = now.toLocaleDateString('ar-EG', { day:'numeric', month:'long', year:'numeric' }) + ' م';
+            const hijri = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-uma', { day:'numeric', month:'long', year:'numeric' }).format(now) + ' هـ';
+            
+            document.getElementById('inDateGreg').value = greg;
+            document.getElementById('inDateHijri').value = hijri;
+            sync();
+        }
+
+        // --- Preview and Download ---
+        async function previewImage() {
+            const cert = document.getElementById('certificate-area');
+            // Hide selection border for clean preview
+            const canvas = await html2canvas(cert, { 
+                scale: 2, 
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            });
+            const modal = document.getElementById('previewModal');
+            const container = document.getElementById('finalPreview');
+            
+            container.innerHTML = '';
+            const img = new Image();
+            img.src = canvas.toDataURL('image/png');
+            img.className = "max-w-full h-auto shadow-2xl";
+            container.appendChild(img);
+            modal.style.display = 'flex';
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+
+        async function downloadPNG() {
+            const cert = document.getElementById('certificate-area');
+            const canvas = await html2canvas(cert, { scale: 3, useCORS: true });
+            const link = document.createElement('a');
+            link.download = `شهادة_مروان_${document.getElementById('inName').value}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Listen for all inputs
+        document.querySelectorAll('input, select, textarea').forEach(el => {
+            el.addEventListener('input', sync);
+        });
+
+        window.onload = initDates;
+    </script>
+</body>
+</html>
