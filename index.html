@@ -1,11 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='85'>🎓</text></svg>">
-
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='#007bff'/><text y='.75em' x='5' font-size='70' fill='white'>🎓</text></svg>">
-
-<link rel="manifest" href="data:application/manifest+json,{%22name%22:%22برنامج الشهادات%22,%22short_name%22:%22شهاداتي%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%23007bff%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23007bff'/><text y='.75em' x='5' font-size='70' fill='white'>🎓</text></svg>%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22}]}">
+<link rel="manifest" href="data:application/manifest+json,{%22name%22:%22برنامج الشهادات%22,%22short_name%22:%22شهاداتي%22,%22display%22:%22standalone%22,%22start_url%22:%22/shahada/%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%23007bff%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23007bff'/><text y='.75em' x='5' font-size='70' fill='white'>🎓</text></svg>%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22}]}">
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -211,6 +210,25 @@
     </div>
 
     <script>
+
+        
+// تسجيل الـ Service Worker (مهم جداً للتثبيت)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi.hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGV2ZW50ID0+IHsgfSk7').catch(() => {});
+}
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // أول ما المستخدم يلمس الشاشة أو يضغط في أي مكان، تظهر رسالة التثبيت فوراً
+  window.addEventListener('click', () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt = null;
+    }
+  }, { once: true }); 
+});
         // --- Drag and Drop Logic ---
         let activeElement = null;
         let offset = { x: 0, y: 0 };
